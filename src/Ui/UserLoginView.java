@@ -105,7 +105,7 @@ public class UserLoginView {
         if (movie != null) {
             System.out.println("Movie found: " + movie.getMovieName() + " - Rating: " + movie.getAverageRating());
             
-            // Ask the user if they would like to purchase the movie
+           
             System.out.print("Would you like to purchase this movie? (yes/no): ");
             String purchaseChoice = scanner.nextLine();
             if (purchaseChoice.equalsIgnoreCase("yes")) {
@@ -123,7 +123,6 @@ public class UserLoginView {
         MoviePojo movie = movieDao.getMovieByName(movieName);
 
         if (movie != null) {
-            // Call the purchaseMovie method with both the user and the movie
             purchaseMovie(user, movie);
         } else {
             System.out.println("Movie not found.");
@@ -142,34 +141,91 @@ public class UserLoginView {
         userDao.purchaseMovie(user.getUserId(), movie.getMovieId());
         System.out.println("You have successfully purchased the movie: " + movie.getMovieName());
     }
-
-
+  
     private void viewPurchasedMovies(UserPojo user) {
-        System.out.println("\n--- Your Purchased Movies ---");
-        List<MoviePojo> purchasedMovies = userDao.getPurchasedMovies(user.getUserId());
-        if (purchasedMovies.isEmpty()) {
-            System.out.println("You have not purchased any movies.");
-            return;
-        }
+    System.out.println("\n--- Your Purchased Movies ---");
+    List<MoviePojo> purchasedMovies = userDao.getPurchasedMovies(user.getUserId());
 
-        for (MoviePojo movie : purchasedMovies) {
-            System.out.println(movie.getMovieName() + " - Rating: " + movie.getAverageRating());
-            System.out.print("Would you like to review this movie? (yes/no): ");
-            String reviewChoice = scanner.nextLine();
-            if (reviewChoice.equalsIgnoreCase("yes")) {
-                addReview(user, movie);
-            }
-        }
+    if (purchasedMovies.isEmpty()) {
+        System.out.println("You have not purchased any movies.");
+        return;
     }
 
+    // Display all purchased movies
+    for (int i = 0; i < purchasedMovies.size(); i++) {
+        MoviePojo movie = purchasedMovies.get(i);
+        System.out.println((i + 1) + ". " + movie.getMovieName() + " - Rating: " + movie.getAverageRating());
+    }
+
+    // Loop to allow the user to select which movie to review
+    while (true) {
+        System.out.print("\nEnter the number of the movie you want to review (or 0 to exit): ");
+        int movieIndex = Integer.parseInt(scanner.nextLine());
+
+        // If the user enters 0, exit the review section
+        if (movieIndex == 0) {
+            System.out.println("Exiting the review section.");
+            break;
+        }
+
+        // Check if the user selected a valid movie
+        if (movieIndex > 0 && movieIndex <= purchasedMovies.size()) {
+            MoviePojo selectedMovie = purchasedMovies.get(movieIndex - 1);
+            System.out.println("You selected: " + selectedMovie.getMovieName());
+
+            // Check if the user has already reviewed this movie
+            if (userDao.hasReviewedMovie(user.getUserId(), selectedMovie.getMovieId())) {
+                System.out.println("You have already reviewed this movie.");
+
+                // Prompt the user to update the review
+                System.out.print("Would you like to update your review? (yes/no): ");
+                String updateChoice = scanner.nextLine();
+                
+                if (updateChoice.equalsIgnoreCase("yes")) {
+                    updateReview(user, selectedMovie);  // Call the method to update the review
+                }
+            } else {
+                // If no previous review exists, prompt for a new review
+                addReview(user, selectedMovie);  // Call the method to add a new review
+            }
+        } else {
+            System.out.println("Invalid selection. Please try again.");
+        }
+    }
+}
+
     private void addReview(UserPojo user, MoviePojo movie) {
-        System.out.print("Enter your rating (1-5): ");
-        int rating = Integer.parseInt(scanner.nextLine());
+        int rating = 0;
+        String reviewText = "";
+
+        // Keep prompting for a valid rating until it's between 1 and 5
+        while (true) {
+            System.out.print("Enter your rating (1-5): ");
+            rating = Integer.parseInt(scanner.nextLine());
+
+            if (rating >= 1 && rating <= 5) {
+                break;  // Valid rating, exit the loop
+            } else {
+                System.out.println("Invalid rating! Please enter a rating between 1 and 5.");
+            }
+        }
+
         System.out.print("Enter your review: ");
-        String reviewText = scanner.nextLine();
+        reviewText = scanner.nextLine();
 
         userDao.addReview(user.getUserId(), movie.getMovieId(), rating, reviewText);
         System.out.println("Thank you for your review!");
+    }
+
+    
+    // Method to update an existing review
+    private void updateReview(UserPojo user, MoviePojo movie) {
+        // First, delete the existing review
+        userDao.deleteReview(user.getUserId(), movie.getMovieId());
+        System.out.println("Your previous review has been deleted.");
+
+        // Now prompt the user to add a new review
+        addReview(user, movie);
     }
 
     private void showSignUpView() {

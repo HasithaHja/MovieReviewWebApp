@@ -41,18 +41,19 @@ Contributor(s):
 -->
 <hibernate-configuration>
   <session-factory>
-    <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+    <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
     <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/gmdbmovies?zeroDateTimeBehavior=convertToNull</property>
     <property name="hibernate.connection.username">root</property>
     <property name="hibernate.connection.password">Hh53447522#</property>
-    <mapping package="POJOs"/>
-    <!-- SQL dialect -->
-    <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
-        
-    <!-- Echo all executed SQL to stdout -->
+    <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>      
     <property name="hibernate.show_sql">true</property>
-        
-    <!-- Drop and re-create the database schema on startup -->
     <property name="hibernate.hbm2ddl.auto">update</property>
+    <property name="hibernate.current_session_context_class">thread</property>
+    <mapping class="POJOs.MoviePojo"/>
+    <mapping class="POJOs.GenrePojo"/>
+    <mapping class="POJOs.UserPojo"/>
+    <mapping class="POJOs.ReviewPojo"/>
+    <mapping class="POJOs.PurchasePojo"/>
+    <mapping class="POJOs.AdminPojo"/>
   </session-factory>
 </hibernate-configuration>
